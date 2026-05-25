@@ -1,0 +1,38 @@
+name: Build clvk on ARM64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Use ARM's managed ARM64 runner
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build build-essential python3 libclang-dev libvulkan-dev glslang-tools
+
+    - name: Fetch clspv dependencies
+      run: ./external/clspv/utils/fetch_sources.py --deps llvm
+
+    - name: Configure with CMake
+      run: |
+        mkdir build
+        cd build
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+
+    - name: Build with Ninja
+      run: |
+        cd build
+        ninja
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: clvk-build
+        path: build/   
