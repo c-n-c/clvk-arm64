@@ -8,33 +8,31 @@ jobs:
     runs-on: ubuntu-22.04-arm
 
     steps:
-    - name: Checkout code with submodules
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build build-essential python3 libclang-dev libvulkan-dev glslang-tools
+        sudo apt-get install -y git cmake ninja-build build-essential python3 libclang-dev libvulkan-dev glslang-tools
+
+    - name: Clone clvk repository
+      run: git clone --recursive https://github.com/kpet/clvk.git
 
     - name: Fetch clspv dependencies (LLVM)
-      run: ./external/clspv/utils/fetch_sources.py --deps llvm
+      run: ./clvk/external/clspv/utils/fetch_sources.py --deps llvm
 
     - name: Configure with CMake
       run: |
-        mkdir build
-        cd build
+        mkdir clvk/build
+        cd clvk/build
         cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 
     - name: Build with Ninja
       run: |
-        cd build
+        cd clvk/build
         ninja
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: clvk-build
-        path: build/   
+        path: clvk/build/
+   
